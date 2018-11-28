@@ -524,7 +524,7 @@ const spoonImageBase = "https://spoonacular.com/cdn/ingredients_100x100/"
 export class RecipeDetModal extends Component {
 
     state = {
-        loading: true,
+        disabled: false,
         recipeDetails: {},
         recipeIngred: [],
         recipeSteps: [],
@@ -540,8 +540,7 @@ export class RecipeDetModal extends Component {
         // get recipe details
         console.log(this.props.id)
 
-        // get recipe details Simulater
-        
+        //this simulates the search for testing purposes   
         console.log("simulated recipe details output from API")
         setTimeout(() => {
             let randomIndex = Math.floor(Math.random() * recipeDetList.length)
@@ -565,14 +564,13 @@ export class RecipeDetModal extends Component {
                 cookingMinutes,
                 readyInMinutes,
                 sourceUrl,
-                loading: false
+                disabled: false
             })
-        }, 500)
+        }, 500) 
 
         
-        // get receipt details real
-        /*
-        console.log("real recipe details load from API")
+        //this is the real API search below
+/*        console.log("real recipe details load from API")
         API.getRecipeDetails(this.props.id)
             .then(res => {
                 let recipeIngred = res.data['extendedIngredients']
@@ -597,10 +595,27 @@ export class RecipeDetModal extends Component {
                     sourceUrl,
                     loading: false
                 })
-            })
-        */
+            })    */
+
     }
 
+    saveRecipe = () => {
+        console.log("Saving Recipe for", this.props.username)
+        let recipeDetailsJSON = JSON.stringify(this.state.recipeDetails)
+        let spoonID = this.state.recipeDetails['id']
+        let { sourceUrl, title, image, readyInMinutes , preparationMinutes, cookingMinutes} = this.state.recipeDetails
+        let newObject = {
+            spoonID, sourceUrl, title, image, readyInMinutes , preparationMinutes, cookingMinutes, recipeDetailsJSON
+        }
+        // Add to Main Database
+        API.addFavToDB(newObject)
+            .then(() => {
+                this.setState({disabled: true})
+                API.addFavToUser(this.props.username, spoonID)
+                    .then(res => console.log(res.data))
+            })
+        console.log(newObject)
+    }
 
 
     render() {
@@ -617,7 +632,7 @@ export class RecipeDetModal extends Component {
                             <div className="modal-body modalRecipeDet-body">
                                 <img className="img-fluid modalRecipeImg" src={this.state.recipeDetails['image']} alt={this.props.title}></img>
                                 <hr></hr>
-                                Source: <a href={this.state.sourceUrl} target="_blank">{this.state.sourceUrl}</a>
+                                Recipe Src: <a href={this.state.sourceUrl} target="_blank">{this.state.sourceUrl}</a>
                                 <hr></hr>
                                 <div className="row">
                                     <div className="col col-xs-4">Ready Time </div>
@@ -639,10 +654,9 @@ export class RecipeDetModal extends Component {
                                 <ol>
                                     {this.state.foundRecipeSteps ? this.state.recipeSteps.map(step => <li key={step.number}>{step.step}</li>) : "See Source URL"}
                                 </ol>
-                                <h4> {this.state.loading ? "Loading Recipe Information..." : ""} </h4>
                             </div>
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-danger">Save</button>
+                                <button type="button" className="btn btn-danger" disabled={this.state.disabled} onClick={this.saveRecipe}>Save</button>
                                 <button type="button" className="btn btn-secondary" data-dismiss="modal" onClick={this.props.closeModal}>Close</button>
                             </div>
                         </div>
