@@ -1,4 +1,4 @@
-import React from "react";
+johnimport React from "react";
 import "./IngredGroupCard.css"
 
 export const IngredGroupCard = props => {
